@@ -1,6 +1,6 @@
-# pgql
+# sortsys API
 
-API Interace for PostgresSQL RDBMS using an SQL-like query language usefule providing JSON-based APIs with finegrained authorization and powerful dynamic queries.
+API Interface for PostgresSQL RDBMS using an SQL-like query language useful for providing JSON-based APIs with finegrained authorization and powerful dynamic queries.
 
 ## Why?
 
@@ -13,7 +13,7 @@ This is why I created this query language. Its purpose is mainly to be able to i
 ### JSON
 
 ```sql
-SELECT { ...json(x), "json": json(x) } FROM x
+SELECT json(x) || { "json": json(x) } FROM x
 ```
 maps to
 ```sql
@@ -66,7 +66,7 @@ SELECT to_jsonb(
 ### Joins
 
 ```sql
-SELECT json(y.*) FROM x JOIN y ON y.id = x.y
+SELECT json(y.*) FROM x JOIN y ON y.id == x.y
 ```
 maps to
 ```sql
