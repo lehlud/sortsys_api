@@ -1,8 +1,9 @@
 # pgql
 
-Postgres based SQL-like query language useful for providing JSON-based APIs with finegrained authorization and powerful dynamic queries.
+API Interace for PostgresSQL RDBMS using an SQL-like query language usefule providing JSON-based APIs with finegrained authorization and powerful dynamic queries.
 
 ## Why?
+
 For one specific API I wanted to provide dynamic query possibilities without sacrificing security while still being able to build those queries client side.
 
 This is why I created this query language. Its purpose is mainly to be able to inject extra conditions into select and join queries without opening the door for sql injections.

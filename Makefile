@@ -3,11 +3,9 @@
 all: grammar
 
 clean:
-	rm -rf src/generated
+	rm -rf api/src/main/java/de/sortsys/api/ql/generated
 
 grammar: QL.g4
-	mkdir -p src/generated
-	antlr4 QL.g4 -Dlanguage=JavaScript -o src/generated -no-listener -visitor
-
-
+	mkdir -p api/src/main/java/de/sortsys/api/ql/generated
+	antlr4 $< -Dlanguage=Java -o api/src/main/java/de/sortsys/api/ql/generated -no-listener -visitor -package de.sortsys.api.ql.generated
 
