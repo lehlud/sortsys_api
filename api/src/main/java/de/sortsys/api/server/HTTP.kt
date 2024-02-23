@@ -8,7 +8,7 @@ import java.lang.Exception
 
 class SQLHTTPServer(
     override val port: Int,
-    val db: SQLDatabase
+    private val db: SQLDatabase
 ) : Server {
     private var app: Javalin? = null
 

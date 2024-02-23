@@ -41,30 +41,3 @@ abstract class FixedSizeConnectionPool<T>(
     }
 }
 
-data class SQLPoolCredentials(
-    val host: String,
-    val port: Int,
-    val database: String,
-    val user: String,
-    val pass: String,
-)
-
-class SQLConnectionPool(pool: Queue<Connection>, semaphore: Semaphore) :
-    FixedSizeConnectionPool<Connection>(pool, semaphore) {
-    companion object {
-        fun create(size: Int, creds: SQLPoolCredentials): SQLConnectionPool {
-            val pool = LinkedList<Connection>()
-            for (i in 1..size) {
-                val url = "jdbc:postgresql://${creds.host}:${creds.port}/${creds.database}"
-                val conn = DriverManager.getConnection(url, creds.user, creds.pass)
-                pool.add(conn)
-            }
-
-            return SQLConnectionPool(pool, Semaphore(size))
-        }
-    }
-
-    override fun closeConn(conn: Connection) {
-        conn.close()
-    }
-}

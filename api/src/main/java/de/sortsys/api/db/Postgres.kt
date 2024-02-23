@@ -3,11 +3,15 @@ package de.sortsys.api.db
 import de.sortsys.api.ql.*
 import java.lang.Exception
 import java.sql.Connection
+import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.util.*
+import java.util.concurrent.Semaphore
+import kotlin.collections.ArrayList
 
 class PostgresDB(
-    private val pool: SQLConnectionPool
+    private val pool: PostgresConnectionPool
 ) : SQLDatabase {
     override fun parseQL(query: String): SQL {
         val prog = DefaultQLParser().parse(query)
@@ -79,6 +83,51 @@ class PostgresDB(
         return stmt
     }
 }
+
+data class PostgresCredentials(
+    val host: String,
+    val port: Int,
+    val database: String,
+    val user: String,
+    val pass: String,
+) {
+    companion object {
+        fun env(): PostgresCredentials {
+            val env = System.getenv();
+
+            return PostgresCredentials(
+                host = env["DB_HOST"] ?: "localhost",
+                port = env["DB_PORT"]?.toIntOrNull() ?: 5432,
+                database = env["DB_NAME"] ?: "postgres",
+                user = env["DB_USER"] ?: "postgres",
+                pass = env["DB_PASS"] ?: "any",
+            )
+        }
+    }
+}
+
+
+
+class PostgresConnectionPool(pool: Queue<Connection>, semaphore: Semaphore) :
+    FixedSizeConnectionPool<Connection>(pool, semaphore) {
+    companion object {
+        fun create(size: Int, creds: PostgresCredentials): PostgresConnectionPool {
+            val pool = LinkedList<Connection>()
+            for (i in 1..size) {
+                val url = "jdbc:postgresql://${creds.host}:${creds.port}/${creds.database}"
+                val conn = DriverManager.getConnection(url, creds.user, creds.pass)
+                pool.add(conn)
+            }
+
+            return PostgresConnectionPool(pool, Semaphore(size))
+        }
+    }
+
+    override fun closeConn(conn: Connection) {
+        conn.close()
+    }
+}
+
 
 class PostgresSQLGenerator : BaseASTVisitor<SQL>(), SQLGenerator {
     override fun generate(node: ASTNode): SQL {
@@ -345,7 +394,7 @@ class PostgresSQLGenerator : BaseASTVisitor<SQL>(), SQLGenerator {
             "jsonarray" -> "jsonb_build_array"
             "jsonobject" -> "jsonb_build_object"
 
-            "query" -> "to_tsquery"
+            "query" -> "plainto_tsquery"
             "plainquery" -> "plainto_tsquery"
 
             "unnest" -> "unnest"
